@@ -1,6 +1,21 @@
 import { Sparkles, Receipt, TrendingUp, Calendar } from 'lucide-react';
+import { BrowserRouter, Routes, Route, Link } from 'react-router';
+import TermsPage from './TermsPage';
+import PrivacyPolicyPage from './PrivacyPolicyPage';
 
 export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/policy" element={<PrivacyPolicyPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+function LandingPage() {
   return (
     <div className="min-h-screen bg-[#f8f6f4]">
       {/* Header */}
@@ -152,8 +167,8 @@ export default function App() {
             Track every rupee. Own your finances.
           </p>
           <div className="flex items-center justify-center gap-4 mt-4">
-            <a href="#" className="text-gray-400 text-sm">Terms and Conditions</a>
-            <a href="#" className="text-gray-400 text-sm">Privacy Policy</a>
+            <Link to="/terms" className="text-gray-400 text-sm">Terms and Conditions</Link>
+            <Link to="/policy" className="text-gray-400 text-sm">Privacy Policy</Link>
           </div>
         </div>
       </footer>
