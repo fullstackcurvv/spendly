@@ -1,4 +1,5 @@
-import { Sparkles, Receipt, TrendingUp, Calendar } from 'lucide-react';
+import { Sparkles, Receipt, TrendingUp, Calendar, X } from 'lucide-react';
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router';
 import TermsPage from './TermsPage';
 import PrivacyPolicyPage from './PrivacyPolicyPage';
@@ -16,6 +17,7 @@ export default function App() {
 }
 
 function LandingPage() {
+  const [showModal, setShowModal] = useState(false);
   return (
     <div className="min-h-screen bg-[#f8f6f4]">
       {/* Header */}
@@ -60,7 +62,10 @@ function LandingPage() {
           <button className="px-7 py-3.5 bg-black text-white font-semibold rounded-xl hover:bg-gray-800">
             Create free account
           </button>
-          <button className="px-7 py-3.5 bg-black text-white font-semibold rounded-xl hover:bg-gray-800">
+          <button
+            className="px-7 py-3.5 bg-black text-white font-semibold rounded-xl hover:bg-gray-800"
+            onClick={() => setShowModal(true)}
+          >
             See how it works
           </button>
         </div>
@@ -180,6 +185,34 @@ function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Video Modal */}
+      {showModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            className="relative w-full max-w-3xl mx-4 bg-black rounded-2xl overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white"
+              onClick={() => setShowModal(false)}
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="aspect-video">
+              <iframe
+                className="w-full h-full"
+                src="https://www.youtube.com/embed/-Lt-ntUDj-g?list=PLKnIA16_RmvaYH3poI0oJvbDF4zEvpq8W&index=4&autoplay=1"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
