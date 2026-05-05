@@ -7,3 +7,43 @@ Both should be plain text links, no special styling needed for now.
 Point both to "#" as placeholder hrefs since the pages don't exist yet.
 
 Do not modify anything else on the page.
+
+git commit -m "landing: add terms and privacy links to footer”
+
+Create a "Terms and Conditions" page for Spendly.
+
+1. Add a new route in [@src/app/App.tsx]:
+GET /terms → renders new page
+
+2. Create new page with generic terms and conditions
+content appropriate for a personal expense tracking app.
+Include sections like: Acceptance of Terms, Use of Service,
+User Data, Limitations of Liability, and Changes to Terms.
+Match the style of landing page.
+3. In @src/app/App.tsx, update the "Terms and Conditions"
+footer link href from "#" to "/terms".
+
+git commit -m "landing: add terms and conditions page and route”
+
+Do the same as you did for the Terms and Conditions page,
+but for Privacy Policy.
+
+1. Add a new route in [@src/app/App.tsx]:
+GET /policy → renders new page
+
+2. Create new page with generic Privacy Policy
+content appropriate for a personal expense tracking app.
+Include sections like: Acceptance of Privacy Policy, Use of Service,
+User Data, Limitations of Liability, and Changes to Privacy Policy.
+Match the style of landing page.
+
+3. In @src/app/App.tsx, update the "Privacy Policy"
+footer link href from "#" to "/policy".
+4. Make sure the appearance looks like the website's theme
+
+git commit -m "landing: add privacy policy page and route”
+
+I've attached a screenshot (C:/Users/asus/CLAUDE COWORK/spendly/springboot/hero-section.jpeg) of the updated Spendly hero section design.
+
+Modify only the hero section in @src/app/App.tsx and @styles/tailwind.css
+to match this image exactly. Do not touch any other part of the page.

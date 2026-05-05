@@ -37,71 +37,79 @@ function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="px-6 pt-20 pb-32 max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <div className="text-xs tracking-[0.15em] text-gray-600 mb-6 font-medium">
-              PERSONAL FINANCE TRACKER
+      <section className="px-6 pt-16 pb-24 max-w-4xl mx-auto text-center">
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-green-200 bg-green-50 text-green-700 text-sm mb-8">
+          <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>
+          Free to use · No credit card needed
+        </div>
+
+        {/* Headline */}
+        <h1 className="text-6xl font-bold leading-tight mb-6">
+          Track every rupee.<br />
+          <span className="text-[#2ca85a]">Know where it goes.</span>
+        </h1>
+
+        {/* Subtitle */}
+        <p className="text-gray-500 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
+          Spendly helps you log expenses, spot patterns, and stay on budget — without the spreadsheet headache.
+        </p>
+
+        {/* CTA Buttons */}
+        <div className="flex items-center justify-center gap-4 mb-16">
+          <button className="px-7 py-3.5 bg-black text-white font-semibold rounded-xl hover:bg-gray-800">
+            Create free account
+          </button>
+          <button className="px-7 py-3.5 bg-black text-white font-semibold rounded-xl hover:bg-gray-800">
+            See how it works
+          </button>
+        </div>
+
+        {/* Browser Mockup */}
+        <div className="bg-[#f0f0ee] rounded-2xl p-6 border border-gray-200 shadow-sm text-left">
+          <div className="flex items-center gap-1.5 mb-5">
+            <span className="w-3 h-3 rounded-full bg-red-400"></span>
+            <span className="w-3 h-3 rounded-full bg-yellow-400"></span>
+            <span className="w-3 h-3 rounded-full bg-green-400"></span>
+          </div>
+
+          {/* Stat Cards */}
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            <div className="bg-white rounded-xl p-4 border border-gray-100">
+              <p className="text-gray-400 text-xs mb-2">This month</p>
+              <p className="text-2xl font-bold mb-1">₹18,240</p>
+              <p className="text-red-500 text-xs font-medium">+12% vs last</p>
             </div>
-            <h1 className="text-6xl font-bold mb-6 leading-tight">
-              Know where your{' '}
-              <span className="italic font-serif">money goes</span>
-            </h1>
-            <p className="text-gray-600 text-lg mb-8 leading-relaxed max-w-md">
-              Log expenses, understand your spending patterns, and take control of your financial life — one transaction at a time.
-            </p>
-            <div className="flex items-center gap-6">
-              <button className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800">
-                Start tracking free
-              </button>
-              <button className="text-gray-700 hover:text-gray-900">
-                Sign in
-              </button>
+            <div className="bg-white rounded-xl p-4 border border-gray-100">
+              <p className="text-gray-400 text-xs mb-2">Budget left</p>
+              <p className="text-2xl font-bold mb-1">₹6,760</p>
+              <p className="text-[#2ca85a] text-xs font-medium">43% remaining</p>
+            </div>
+            <div className="bg-white rounded-xl p-4 border border-gray-100">
+              <p className="text-gray-400 text-xs mb-2">Transactions</p>
+              <p className="text-2xl font-bold mb-1">34</p>
+              <p className="text-gray-400 text-xs">this month</p>
             </div>
           </div>
 
-          {/* Spending Card */}
-          <div className="bg-white rounded-2xl p-8 shadow-sm">
-            <div className="flex justify-between items-start mb-8">
-              <span className="text-xs text-gray-500 tracking-wider">MARCH 2026</span>
-              <span className="text-3xl font-bold">₹12,450</span>
+          {/* Category Bars */}
+          <div className="bg-white rounded-xl px-5 py-4 border border-gray-100 space-y-4">
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600 w-12 text-right">Food</span>
+              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-orange-400 rounded-full" style={{ width: '75%' }}></div>
+              </div>
             </div>
-            <div className="space-y-5">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-700">Bills</span>
-                  <span className="text-gray-500">₹4,500</span>
-                </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#2d5f2e] rounded-full" style={{ width: '72%' }}></div>
-                </div>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600 w-12 text-right">Travel</span>
+              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-400 rounded-full" style={{ width: '55%' }}></div>
               </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-700">Food</span>
-                  <span className="text-gray-500">₹3,200</span>
-                </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#d4a04c] rounded-full" style={{ width: '51%' }}></div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-700">Health</span>
-                  <span className="text-gray-500">₹2,050</span>
-                </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#6b7ca8] rounded-full" style={{ width: '33%' }}></div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-700">Transport</span>
-                  <span className="text-gray-500">₹1,800</span>
-                </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#5d4157] rounded-full" style={{ width: '29%' }}></div>
-                </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600 w-12 text-right">Bills</span>
+              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-purple-400 rounded-full" style={{ width: '40%' }}></div>
               </div>
             </div>
           </div>
