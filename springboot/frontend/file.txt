@@ -1,3 +1,10 @@
+git checkout main 
+git pull origin main 
+git checkout -b feature/landing-page 
+git push -u origin feature/landing-page 
+
+------
+
 Add two links to the footer in @src/app/App.tsx:
 
 - "Terms and Conditions"
@@ -8,7 +15,13 @@ Point both to "#" as placeholder hrefs since the pages don't exist yet.
 
 Do not modify anything else on the page.
 
+------
+
+bash>>git add .
 git commit -m "landing: add terms and privacy links to footer”
+git push feature/landing-page
+
+------
 
 Create a "Terms and Conditions" page for Spendly.
 
@@ -23,7 +36,13 @@ Match the style of landing page.
 3. In @src/app/App.tsx, update the "Terms and Conditions"
 footer link href from "#" to "/terms".
 
+------
+
+bash>>git add .
 git commit -m "landing: add terms and conditions page and route”
+git push feature/landing-page
+
+------
 
 Do the same as you did for the Terms and Conditions page,
 but for Privacy Policy.
@@ -41,15 +60,26 @@ Match the style of landing page.
 footer link href from "#" to "/policy".
 4. Make sure the appearance looks like the website's theme
 
+------
+
+bash>>git add .
 git commit -m "landing: add privacy policy page and route”
+git push feature/landing-page
+
+------
 
 I've attached a screenshot (C:/Users/asus/CLAUDE COWORK/spendly/springboot/hero-section.jpeg) of the updated Spendly hero section design.
 
 Modify only the hero section in @src/app/App.tsx and @styles/tailwind.css
 to match this image exactly. Do not touch any other part of the page.
 
+------
 
+bash>>git add .
 git commit -m "landing: redesign hero section to match mockup"
+git push feature/landing-page
+
+------
 
 Add a modal to @src/app/App.tsx that opens when the user clicks
 "See how it works".
@@ -67,5 +97,8 @@ using any JS framework in this project
 
 Do not modify any other part of the page.
 
+------
+
 bash>>git add .
 git commit -m "landing: add youtube modal on see how it works click"
+git push feature/landing-page
