@@ -19,7 +19,7 @@ Do not modify anything else on the page.
 
 bash>>git add .
 git commit -m "landing: add terms and privacy links to footer”
-git push feature/landing-page
+git push -u origin feature/landing-page 
 
 ------
 
@@ -40,7 +40,7 @@ footer link href from "#" to "/terms".
 
 bash>>git add .
 git commit -m "landing: add terms and conditions page and route”
-git push feature/landing-page
+git push -u origin feature/landing-page 
 
 ------
 
@@ -64,7 +64,7 @@ footer link href from "#" to "/policy".
 
 bash>>git add .
 git commit -m "landing: add privacy policy page and route”
-git push feature/landing-page
+git push -u origin feature/landing-page 
 
 ------
 
@@ -77,7 +77,7 @@ to match this image exactly. Do not touch any other part of the page.
 
 bash>>git add .
 git commit -m "landing: redesign hero section to match mockup"
-git push feature/landing-page
+git push -u origin feature/landing-page 
 
 ------
 
@@ -101,4 +101,4 @@ Do not modify any other part of the page.
 
 bash>>git add .
 git commit -m "landing: add youtube modal on see how it works click"
-git push feature/landing-page
+git push -u origin feature/landing-page 
