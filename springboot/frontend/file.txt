@@ -102,3 +102,16 @@ Do not modify any other part of the page.
 bash>>git add .
 git commit -m "landing: add youtube modal on see how it works click"
 git push -u origin feature/landing-page 
+
+------Plan mode - executing specs/01-database-setup.md------
+How to activate plan mode:
+Either option 1) or option 2)
+1) shift+tab -> 2 times
+2) /plan
+
+Read .claude/specs/01-database-setup.md and create the repository and model classes 
+in the backend folder according to the backend folder structure defined in the 
+CLAUDE.md file, then generate an implementation plan. 
+Save this plan to .claude/plans/01-database-setup.md
+
+------

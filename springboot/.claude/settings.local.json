@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git *)"
+      "Bash(git *)",
+      "PowerShell(ls -Recurse \"C:\\\\Users\\\\asus\\\\CLAUDE COWORK\\\\spendly\\\\springboot\\\\.claude\" | ForEach-Object { $_.FullName })",
+      "Read(//mnt/c/Users/asus/CLAUDE COWORK/spendly/springboot/**)",
+      "Bash(echo \"EXIT:$?\")"
     ]
   }
 }
