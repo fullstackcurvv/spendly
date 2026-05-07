@@ -136,3 +136,13 @@ Save this plan to .claude/plans/03-login-and-logout-plan.md
 
 ------03-login-and-logout Fixes--------------
 I am able to access /login and /register even when I am logged in. This should not happen.
+
+------Plan Mode for 04-profile-page--------------
+How to activate plan mode:
+Either option 1) or option 2)
+1) shift+tab -> 2 times
+2) /plan
+
+Read .claude/specs/04-profile-page.md and create a detailed implementation 
+plan for the same. Do not write any code.
+Save this plan to .claude/plans/04-profile-page-plan.md

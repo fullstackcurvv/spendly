@@ -6,11 +6,18 @@ import PrivacyPolicyPage from './PrivacyPolicyPage';
 import RegisterPage from './RegisterPage';
 import LoginPage from './LoginPage';
 import DashboardPage from './DashboardPage';
+import ProfilePage from './ProfilePage';
 
 function GuestRoute({ children }: { children: React.ReactNode }) {
   return localStorage.getItem('spendly_token')
     ? <Navigate to="/dashboard" replace />
     : <>{children}</>;
+}
+
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  return localStorage.getItem('spendly_token')
+    ? <>{children}</>
+    : <Navigate to="/login" replace />;
 }
 
 export default function App() {
@@ -20,7 +27,8 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
         <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
+        <Route path="/profile" element={<PrivateRoute><ProfilePage /></PrivateRoute>} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/policy" element={<PrivacyPolicyPage />} />
       </Routes>
