@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router';
 import TermsPage from './TermsPage';
 import PrivacyPolicyPage from './PrivacyPolicyPage';
 import RegisterPage from './RegisterPage';
+import LoginPage from './LoginPage';
+import DashboardPage from './DashboardPage';
 
 export default function App() {
   return (
@@ -11,6 +13,8 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/policy" element={<PrivacyPolicyPage />} />
       </Routes>
@@ -31,9 +35,9 @@ function LandingPage() {
           <span className="font-semibold text-lg">Spendly</span>
         </div>
         <div className="flex items-center gap-4">
-          <button className="text-sm px-4 py-2 text-gray-700 hover:text-gray-900">
+          <Link to="/login" className="text-sm px-4 py-2 text-gray-700 hover:text-gray-900">
             Sign in
-          </button>
+          </Link>
           <Link to="/register" className="text-sm px-5 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800">
             Get started
           </Link>

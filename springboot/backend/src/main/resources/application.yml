@@ -11,3 +11,7 @@ logging:
   level:
     com.spendly: DEBUG
     org.springframework.data: INFO
+
+jwt:
+  secret: 5370656e646c7953656372657432303236537472696e674b657946726f6d4865
+  expiration-ms: 86400000
