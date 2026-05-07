@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "PowerShell(ls -Recurse \"C:\\\\Users\\\\asus\\\\CLAUDE COWORK\\\\spendly\\\\springboot\\\\.claude\" | ForEach-Object { $_.FullName })",
+      "Read(//mnt/c/Users/asus/CLAUDE COWORK/spendly/springboot/**)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(javac -cp /c/Users/asus/.m2/repository/org/springframework/security/spring-security-crypto/6.3.0/spring-security-crypto-6.3.0.jar HashGen.java)",
+      "Bash(java -cp .:/c/Users/asus/.m2/repository/org/springframework/security/spring-security-crypto/6.3.0/spring-security-crypto-6.3.0.jar HashGen)",
+      "Bash(python seed_user.py)"
+    ]
+  }
+}
