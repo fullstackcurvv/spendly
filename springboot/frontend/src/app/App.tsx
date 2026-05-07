@@ -1,19 +1,25 @@
 import { Sparkles, Receipt, TrendingUp, Calendar, X } from 'lucide-react';
 import { useState } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router';
+import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router';
 import TermsPage from './TermsPage';
 import PrivacyPolicyPage from './PrivacyPolicyPage';
 import RegisterPage from './RegisterPage';
 import LoginPage from './LoginPage';
 import DashboardPage from './DashboardPage';
 
+function GuestRoute({ children }: { children: React.ReactNode }) {
+  return localStorage.getItem('spendly_token')
+    ? <Navigate to="/dashboard" replace />
+    : <>{children}</>;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
+        <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/policy" element={<PrivacyPolicyPage />} />

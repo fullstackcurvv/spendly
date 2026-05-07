@@ -133,3 +133,6 @@ Either option 1) or option 2)
 Read .claude/specs/03-login-and-logout.md and create a detailed implementation 
 plan for the same. Do not write any code.
 Save this plan to .claude/plans/03-login-and-logout-plan.md
+
+------03-login-and-logout Fixes--------------
+I am able to access /login and /register even when I am logged in. This should not happen.
