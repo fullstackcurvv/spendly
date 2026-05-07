@@ -3,12 +3,14 @@ import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router';
 import TermsPage from './TermsPage';
 import PrivacyPolicyPage from './PrivacyPolicyPage';
+import RegisterPage from './RegisterPage';
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/policy" element={<PrivacyPolicyPage />} />
       </Routes>
@@ -32,9 +34,9 @@ function LandingPage() {
           <button className="text-sm px-4 py-2 text-gray-700 hover:text-gray-900">
             Sign in
           </button>
-          <button className="text-sm px-5 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800">
+          <Link to="/register" className="text-sm px-5 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800">
             Get started
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -59,9 +61,9 @@ function LandingPage() {
 
         {/* CTA Buttons */}
         <div className="flex items-center justify-center gap-4 mb-16">
-          <button className="px-7 py-3.5 bg-black text-white font-semibold rounded-xl hover:bg-gray-800">
+          <Link to="/register" className="px-7 py-3.5 bg-black text-white font-semibold rounded-xl hover:bg-gray-800">
             Create free account
-          </button>
+          </Link>
           <button
             className="px-7 py-3.5 bg-black text-white font-semibold rounded-xl hover:bg-gray-800"
             onClick={() => setShowModal(true)}
@@ -161,9 +163,9 @@ function LandingPage() {
           <p className="text-gray-600 mb-8">
             Join thousands of people who track their expenses with Spendly.
           </p>
-          <button className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800">
+          <Link to="/register" className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800">
             Create free account
-          </button>
+          </Link>
         </div>
       </section>
 
