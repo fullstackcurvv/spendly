@@ -42,6 +42,7 @@ Not applicable — this is a Spring Boot + React project, not a server-rendered 
 | File | Purpose |
 |------|---------|
 | `frontend/src/app/RegisterPage.tsx` | Registration form page with name, email, and password fields |
+- link the registration page in the landing page
 
 ## New dependencies
 No new dependencies. Both `spring-boot-starter-validation` (for `@Valid`, `@NotBlank`, `@Email`, `@Size`) and `spring-security-crypto` (for `BCryptPasswordEncoder`) are already in `pom.xml`.
