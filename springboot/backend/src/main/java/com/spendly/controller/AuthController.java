@@ -1,5 +1,7 @@
 package com.spendly.controller;
 
+import com.spendly.dto.LoginRequestDto;
+import com.spendly.dto.LoginResponseDto;
 import com.spendly.dto.RegisterRequestDto;
 import com.spendly.dto.UserResponseDto;
 import com.spendly.service.UserService;
@@ -25,5 +27,10 @@ public class AuthController {
     public ResponseEntity<UserResponseDto> register(@Valid @RequestBody RegisterRequestDto request) {
         UserResponseDto response = userService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto request) {
+        return ResponseEntity.ok(userService.login(request));
     }
 }

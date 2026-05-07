@@ -118,7 +118,7 @@ export default function RegisterPage() {
               <h1 className="text-2xl font-bold mb-1">Create your account</h1>
               <p className="text-gray-500 text-sm mb-6">
                 Already have one?{' '}
-                <Link to="/" className="font-medium" style={{ color: 'var(--brand-green)' }}>
+                <Link to="/login" className="font-medium" style={{ color: 'var(--brand-green)' }}>
                   Sign in
                 </Link>
               </p>

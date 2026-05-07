@@ -123,3 +123,13 @@ Either option 1) or option 2)
 Read .claude/specs/02-registration.md and create a detailed implementation 
 plan for the same. Do not write any code.
 Save this plan to .claude/plans/02-registration-plan.md
+
+------Plan Mode for 03-login-and-logout--------------
+How to activate plan mode:
+Either option 1) or option 2)
+1) shift+tab -> 2 times
+2) /plan
+
+Read .claude/specs/03-login-and-logout.md and create a detailed implementation 
+plan for the same. Do not write any code.
+Save this plan to .claude/plans/03-login-and-logout-plan.md
