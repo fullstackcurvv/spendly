@@ -13,7 +13,12 @@
       "Skill(update-config)",
       "Bash(mvn compile *)",
       "Bash(node_modules/.bin/tsc --noEmit)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(mongosh *)",
+      "Bash(where mongo *)",
+      "Bash(where mongosh *)",
+      "Bash(mongosh.cmd *)",
+      "Bash(python *)"
     ]
   }
 }

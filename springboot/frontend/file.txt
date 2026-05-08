@@ -163,3 +163,16 @@ Subagent 3: Implement the category breakdown routes.
 
 Each subagent should only modify its assigned section in respective classes.
 Save this plan to .claude/plans/05-profile-backend-plan.md
+
+-------prompt: Make changes in UI----------------
+
+Make changes in the code. Whenever user logged-in then directly Profile page should
+be displayed
+
+-----
+
+/agents
+>> create new agents
+
+Use this agent to write pytest test cases for Spendly
+features. Invoke after implementing any feature to generate tests based on the feature spec, not the implementation.

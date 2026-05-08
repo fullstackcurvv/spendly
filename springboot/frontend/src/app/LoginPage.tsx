@@ -58,7 +58,7 @@ export default function LoginPage() {
       });
       localStorage.setItem('spendly_token', data.token);
       localStorage.setItem('spendly_user', JSON.stringify({ id: data.id, name: data.name, email: data.email }));
-      navigate('/dashboard');
+      navigate('/profile');
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         if (err.response?.status === 401) {
