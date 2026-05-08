@@ -10,7 +10,10 @@
       "Bash(python seed_user.py)",
       "Bash(npx tsc *)",
       "Bash(node *)",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(mvn compile *)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(npm run *)"
     ]
   }
 }
