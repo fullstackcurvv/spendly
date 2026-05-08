@@ -8,7 +8,9 @@
       "Bash(javac -cp /c/Users/asus/.m2/repository/org/springframework/security/spring-security-crypto/6.3.0/spring-security-crypto-6.3.0.jar HashGen.java)",
       "Bash(java -cp .:/c/Users/asus/.m2/repository/org/springframework/security/spring-security-crypto/6.3.0/spring-security-crypto-6.3.0.jar HashGen)",
       "Bash(python seed_user.py)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(node *)",
+      "Skill(update-config)"
     ]
   }
 }
