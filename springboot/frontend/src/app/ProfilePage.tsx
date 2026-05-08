@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { Sparkles, LogOut } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import axios from 'axios';
 
 interface ProfileData {
@@ -10,346 +10,233 @@ interface ProfileData {
   createdAt: string;
 }
 
-interface NameForm {
-  name: string;
+interface Transaction {
+  date: string;
+  description: string;
+  category: string;
+  amount: number;
 }
 
-interface PasswordForm {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
+// Mock expense data — replace with real API calls when expense endpoints are built
+const MOCK_TRANSACTIONS: Transaction[] = [
+  { date: '12 Apr 2025', description: 'Groceries', category: 'Food', amount: 850.0 },
+  { date: '11 Apr 2025', description: 'Metro card recharge', category: 'Transport', amount: 500.0 },
+  { date: '10 Apr 2025', description: 'Electricity bill', category: 'Bills', amount: 2200.0 },
+  { date: '09 Apr 2025', description: 'Doctor visit', category: 'Health', amount: 800.0 },
+  { date: '08 Apr 2025', description: 'Netflix subscription', category: 'Entertainment', amount: 649.0 },
+  { date: '07 Apr 2025', description: 'New shoes', category: 'Shopping', amount: 3200.0 },
+  { date: '05 Apr 2025', description: 'Dinner with friends', category: 'Food', amount: 1450.0 },
+  { date: '01 Apr 2025', description: 'Miscellaneous', category: 'Other', amount: 2801.75 },
+];
+
+const BADGE: Record<string, string> = {
+  Food: 'bg-green-100 text-green-700',
+  Transport: 'bg-slate-700 text-white',
+  Bills: 'bg-blue-100 text-blue-600',
+  Health: 'bg-red-100 text-red-500',
+  Entertainment: 'bg-purple-100 text-purple-600',
+  Shopping: 'bg-amber-100 text-amber-700',
+  Other: 'bg-gray-100 text-gray-500',
+};
+
+const BAR_COLOR: Record<string, string> = {
+  Shopping: '#d97706',
+  Other: '#9ca3af',
+  Food: '#16a34a',
+  Bills: '#2563eb',
+  Health: '#ef4444',
+  Entertainment: '#7c3aed',
+  Transport: '#f59e0b',
+};
+
+function fmt(n: number) {
+  return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function initials(name: string) {
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
 export default function ProfilePage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [loadingProfile, setLoadingProfile] = useState(true);
-
-  const [nameForm, setNameForm] = useState<NameForm>({ name: '' });
-  const [nameError, setNameError] = useState('');
-  const [nameSuccess, setNameSuccess] = useState('');
-  const [nameSaving, setNameSaving] = useState(false);
-
-  const [pwForm, setPwForm] = useState<PasswordForm>({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
-  const [pwErrors, setPwErrors] = useState<Partial<PasswordForm>>({});
-  const [pwServerError, setPwServerError] = useState('');
-  const [pwSuccess, setPwSuccess] = useState('');
-  const [pwSaving, setPwSaving] = useState(false);
-
-  function authHeader() {
-    const token = localStorage.getItem('spendly_token');
-    return { Authorization: `Bearer ${token}` };
-  }
-
-  function handleUnauthorized() {
-    localStorage.removeItem('spendly_token');
-    localStorage.removeItem('spendly_user');
-    navigate('/login');
-  }
 
   useEffect(() => {
-    async function fetchProfile() {
-      try {
-        const { data } = await axios.get<ProfileData>('/api/users/me', {
-          headers: authHeader(),
-        });
-        setProfile(data);
-        setNameForm({ name: data.name });
-      } catch (err: unknown) {
+    const token = localStorage.getItem('spendly_token');
+    if (!token) { navigate('/login'); return; }
+    axios
+      .get<ProfileData>('/api/users/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setProfile(res.data))
+      .catch(err => {
         if (axios.isAxiosError(err) && err.response?.status === 401) {
-          handleUnauthorized();
+          localStorage.removeItem('spendly_token');
+          localStorage.removeItem('spendly_user');
+          navigate('/login');
         }
-      } finally {
-        setLoadingProfile(false);
-      }
-    }
-    fetchProfile();
-  }, []);
+      });
+  }, [navigate]);
 
-  function handleLogout() {
+  function handleSignOut() {
     localStorage.removeItem('spendly_token');
     localStorage.removeItem('spendly_user');
     navigate('/');
   }
 
-  async function handleNameSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!nameForm.name.trim()) {
-      setNameError('Name is required.');
-      return;
-    }
-    setNameSaving(true);
-    setNameError('');
-    setNameSuccess('');
-    try {
-      const { data } = await axios.patch<ProfileData>('/api/users/me', nameForm, {
-        headers: authHeader(),
-      });
-      setProfile(data);
-      setNameForm({ name: data.name });
-      const stored = localStorage.getItem('spendly_user');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        localStorage.setItem('spendly_user', JSON.stringify({ ...parsed, name: data.name }));
-      }
-      setNameSuccess('Name updated successfully.');
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) {
-          handleUnauthorized();
-        } else {
-          setNameError('Something went wrong. Please try again.');
-        }
-      }
-    } finally {
-      setNameSaving(false);
-    }
-  }
+  const totalSpent = MOCK_TRANSACTIONS.reduce((s, t) => s + t.amount, 0);
 
-  async function handlePasswordSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const errors: Partial<PasswordForm> = {};
-    if (!pwForm.currentPassword) errors.currentPassword = 'Current password is required.';
-    if (!pwForm.newPassword) {
-      errors.newPassword = 'New password is required.';
-    } else if (pwForm.newPassword.length < 8) {
-      errors.newPassword = 'New password must be at least 8 characters.';
-    }
-    if (!pwForm.confirmPassword) {
-      errors.confirmPassword = 'Please confirm your new password.';
-    } else if (pwForm.newPassword !== pwForm.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match.';
-    }
-    if (Object.keys(errors).length > 0) {
-      setPwErrors(errors);
-      return;
-    }
+  const categoryTotals = Object.entries(
+    MOCK_TRANSACTIONS.reduce<Record<string, number>>((acc, t) => {
+      acc[t.category] = (acc[t.category] ?? 0) + t.amount;
+      return acc;
+    }, {})
+  )
+    .sort(([, a], [, b]) => b - a)
+    .map(([category, total]) => ({ category, total }));
 
-    setPwSaving(true);
-    setPwErrors({});
-    setPwServerError('');
-    setPwSuccess('');
-    try {
-      await axios.patch('/api/users/me/password', {
-        currentPassword: pwForm.currentPassword,
-        newPassword: pwForm.newPassword,
-      }, {
-        headers: authHeader(),
-      });
-      setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-      setPwSuccess('Password updated successfully.');
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        if (err.response?.status === 401) {
-          handleUnauthorized();
-        } else {
-          setPwServerError(err.response?.data?.error ?? 'Something went wrong. Please try again.');
-        }
-      }
-    } finally {
-      setPwSaving(false);
-    }
-  }
-
-  const inputClass = 'w-full px-3 py-2.5 text-sm rounded-lg border bg-gray-50 focus:outline-none focus:ring-2 transition';
-  const inputStyle = (hasError: boolean) => ({
-    borderColor: hasError ? 'var(--destructive)' : 'var(--border)',
-    // @ts-expect-error CSS custom property
-    '--tw-ring-color': 'var(--brand-green)',
-  });
+  const maxTotal = categoryTotals[0]?.total ?? 1;
+  const topCategory = categoryTotals[0]?.category ?? '—';
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--page-bg)' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--page-bg)' }}>
       {/* Header */}
-      <header className="px-6 py-4 max-w-7xl mx-auto w-full flex items-center justify-between">
+      <header className="px-8 py-4 max-w-5xl mx-auto flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <div className="w-5 h-5 bg-[#2d2d2d] rotate-45 flex items-center justify-center">
             <Sparkles className="w-3 h-3 text-white -rotate-45" />
           </div>
-          <span className="font-semibold text-lg">Spendly</span>
+          <span className="font-semibold text-base">Spendly</span>
         </Link>
-        <div className="flex items-center gap-2">
-          <Link
-            to="/dashboard"
-            className="text-sm px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition"
-          >
-            Dashboard
-          </Link>
+        <div className="flex items-center gap-5">
+          {profile && (
+            <span className="text-sm text-gray-700 font-medium">
+              {profile.name.split(' ')[0]}
+            </span>
+          )}
           <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition"
+            onClick={handleSignOut}
+            className="text-sm text-gray-500 hover:text-gray-900 transition"
           >
-            <LogOut className="w-4 h-4" />
-            Log out
+            Sign out
           </button>
         </div>
       </header>
 
-      {/* Content */}
-      <main className="flex-1 px-4 py-10 max-w-lg mx-auto w-full space-y-6">
-        <h1 className="text-2xl font-bold">My Profile</h1>
-
-        {/* Card 1 — Account Info */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-base font-semibold mb-4">Account Info</h2>
-          {loadingProfile ? (
-            <div className="space-y-3">
-              <div className="h-4 bg-gray-100 rounded animate-pulse w-3/4" />
-              <div className="h-4 bg-gray-100 rounded animate-pulse w-1/2" />
-              <div className="h-4 bg-gray-100 rounded animate-pulse w-2/3" />
-            </div>
-          ) : profile ? (
-            <dl className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-gray-500">Name</dt>
-                <dd className="font-medium">{profile.name}</dd>
+      <main className="px-8 pb-12 max-w-5xl mx-auto space-y-4">
+        {/* Profile card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-7">
+          {profile ? (
+            <div className="flex items-center gap-5">
+              <div
+                className="w-[68px] h-[68px] rounded-full flex-shrink-0 flex items-center justify-center text-white text-xl font-bold"
+                style={{ backgroundColor: '#2e4d38' }}
+              >
+                {initials(profile.name)}
               </div>
-              <div className="flex justify-between">
-                <dt className="text-gray-500">Email</dt>
-                <dd className="font-medium">{profile.email}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-gray-500">Member since</dt>
-                <dd className="font-medium">
-                  {new Date(profile.createdAt).toLocaleDateString(undefined, {
+              <div className="space-y-0.5">
+                <p className="text-xl font-bold text-gray-900">{profile.name}</p>
+                <p className="text-sm text-gray-500">{profile.email}</p>
+                <p className="text-sm text-gray-400">
+                  Member since{' '}
+                  {new Date(profile.createdAt).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
                     year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
                   })}
-                </dd>
+                </p>
               </div>
-            </dl>
-          ) : null}
+            </div>
+          ) : (
+            <div className="flex items-center gap-5">
+              <div className="w-[68px] h-[68px] rounded-full bg-gray-100 animate-pulse flex-shrink-0" />
+              <div className="space-y-2">
+                <div className="h-5 w-32 bg-gray-100 rounded animate-pulse" />
+                <div className="h-4 w-48 bg-gray-100 rounded animate-pulse" />
+                <div className="h-4 w-40 bg-gray-100 rounded animate-pulse" />
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Card 2 — Edit Name */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-base font-semibold mb-4">Edit Name</h2>
-          <form onSubmit={handleNameSubmit} noValidate className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Display name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                value={nameForm.name}
-                onChange={e => {
-                  setNameForm({ name: e.target.value });
-                  setNameError('');
-                  setNameSuccess('');
-                }}
-                className={inputClass}
-                style={inputStyle(!!nameError)}
-              />
-              {nameError && (
-                <p className="mt-1 text-xs" style={{ color: 'var(--destructive)' }}>{nameError}</p>
-              )}
-              {nameSuccess && (
-                <p className="mt-1 text-xs" style={{ color: 'var(--brand-green)' }}>{nameSuccess}</p>
-              )}
+        {/* Stat cards */}
+        <div className="grid grid-cols-3 gap-4">
+          {(
+            [
+              { label: 'TOTAL SPENT', value: fmt(totalSpent) },
+              { label: 'TRANSACTIONS', value: String(MOCK_TRANSACTIONS.length) },
+              { label: 'TOP CATEGORY', value: topCategory },
+            ] as const
+          ).map(({ label, value }) => (
+            <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-5">
+              <p className="text-[11px] uppercase tracking-widest text-gray-400 font-semibold mb-2">
+                {label}
+              </p>
+              <p className="text-[32px] leading-tight font-bold text-gray-900 tabular-nums">{value}</p>
             </div>
-            <button
-              type="submit"
-              disabled={nameSaving}
-              className="w-full py-2.5 text-sm font-semibold text-white rounded-lg disabled:opacity-60 transition"
-              style={{ backgroundColor: 'var(--brand-green)' }}
-            >
-              {nameSaving ? 'Saving…' : 'Save changes'}
-            </button>
-          </form>
+          ))}
         </div>
 
-        {/* Card 3 — Change Password */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-base font-semibold mb-4">Change Password</h2>
-          <form onSubmit={handlePasswordSubmit} noValidate className="space-y-4">
-            <div>
-              <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                Current password
-              </label>
-              <input
-                id="currentPassword"
-                name="currentPassword"
-                type="password"
-                autoComplete="current-password"
-                value={pwForm.currentPassword}
-                onChange={e => {
-                  setPwForm(prev => ({ ...prev, currentPassword: e.target.value }));
-                  setPwErrors(prev => ({ ...prev, currentPassword: undefined }));
-                  setPwServerError('');
-                }}
-                className={inputClass}
-                style={inputStyle(!!pwErrors.currentPassword)}
-              />
-              {pwErrors.currentPassword && (
-                <p className="mt-1 text-xs" style={{ color: 'var(--destructive)' }}>{pwErrors.currentPassword}</p>
-              )}
+        {/* Transactions + By Category */}
+        <div className="grid gap-4 items-start" style={{ gridTemplateColumns: '1fr 280px' }}>
+          {/* Recent Transactions */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h2 className="text-base font-bold text-gray-900 mb-4">Recent Transactions</h2>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  {['DATE', 'DESCRIPTION', 'CATEGORY', 'AMOUNT'].map((col, i) => (
+                    <th
+                      key={col}
+                      className={`pb-3 text-[11px] uppercase tracking-widest text-gray-400 font-semibold ${i === 3 ? 'text-right' : 'text-left'}`}
+                    >
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {MOCK_TRANSACTIONS.map((tx, i) => (
+                  <tr key={i} className="border-b border-gray-50 last:border-0">
+                    <td className="py-3 text-gray-500 whitespace-nowrap pr-6">{tx.date}</td>
+                    <td className="py-3 text-gray-700 pr-6">{tx.description}</td>
+                    <td className="py-3 pr-6">
+                      <span
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${BADGE[tx.category] ?? 'bg-gray-100 text-gray-500'}`}
+                      >
+                        {tx.category}
+                      </span>
+                    </td>
+                    <td className="py-3 text-right text-gray-700 font-medium tabular-nums">
+                      {fmt(tx.amount)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* By Category */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h2 className="text-base font-bold text-gray-900 mb-5">By Category</h2>
+            <div className="space-y-4">
+              {categoryTotals.map(({ category, total }) => (
+                <div key={category}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-sm text-gray-700">{category}</span>
+                    <span className="text-sm text-gray-600 tabular-nums">{fmt(total)}</span>
+                  </div>
+                  <div className="h-[5px] bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${(total / maxTotal) * 100}%`,
+                        backgroundColor: BAR_COLOR[category] ?? '#9ca3af',
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                New password
-              </label>
-              <input
-                id="newPassword"
-                name="newPassword"
-                type="password"
-                autoComplete="new-password"
-                value={pwForm.newPassword}
-                onChange={e => {
-                  setPwForm(prev => ({ ...prev, newPassword: e.target.value }));
-                  setPwErrors(prev => ({ ...prev, newPassword: undefined }));
-                  setPwServerError('');
-                }}
-                className={inputClass}
-                style={inputStyle(!!pwErrors.newPassword)}
-              />
-              {pwErrors.newPassword && (
-                <p className="mt-1 text-xs" style={{ color: 'var(--destructive)' }}>{pwErrors.newPassword}</p>
-              )}
-            </div>
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm new password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                value={pwForm.confirmPassword}
-                onChange={e => {
-                  setPwForm(prev => ({ ...prev, confirmPassword: e.target.value }));
-                  setPwErrors(prev => ({ ...prev, confirmPassword: undefined }));
-                  setPwServerError('');
-                }}
-                className={inputClass}
-                style={inputStyle(!!pwErrors.confirmPassword)}
-              />
-              {pwErrors.confirmPassword && (
-                <p className="mt-1 text-xs" style={{ color: 'var(--destructive)' }}>{pwErrors.confirmPassword}</p>
-              )}
-            </div>
-            {pwServerError && (
-              <p className="text-xs text-center" style={{ color: 'var(--destructive)' }}>{pwServerError}</p>
-            )}
-            {pwSuccess && (
-              <p className="text-xs text-center" style={{ color: 'var(--brand-green)' }}>{pwSuccess}</p>
-            )}
-            <button
-              type="submit"
-              disabled={pwSaving}
-              className="w-full py-2.5 text-sm font-semibold text-white rounded-lg disabled:opacity-60 transition"
-              style={{ backgroundColor: 'var(--brand-green)' }}
-            >
-              {pwSaving ? 'Updating…' : 'Update password'}
-            </button>
-          </form>
+          </div>
         </div>
       </main>
     </div>
