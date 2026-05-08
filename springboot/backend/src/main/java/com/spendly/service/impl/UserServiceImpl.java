@@ -1,11 +1,15 @@
 package com.spendly.service.impl;
 
+import com.spendly.dto.ChangePasswordRequestDto;
 import com.spendly.dto.LoginRequestDto;
 import com.spendly.dto.LoginResponseDto;
 import com.spendly.dto.RegisterRequestDto;
+import com.spendly.dto.UpdateProfileRequestDto;
 import com.spendly.dto.UserResponseDto;
 import com.spendly.exception.EmailAlreadyInUseException;
+import com.spendly.exception.IncorrectPasswordException;
 import com.spendly.exception.InvalidCredentialsException;
+import com.spendly.exception.UserNotFoundException;
 import com.spendly.model.User;
 import com.spendly.repository.UserRepository;
 import com.spendly.service.UserService;
@@ -55,6 +59,35 @@ public class UserServiceImpl implements UserService {
 
         String token = jwtUtil.generateToken(user);
         return new LoginResponseDto(token, user.getId(), user.getName(), user.getEmail());
+    }
+
+    @Override
+    public UserResponseDto getProfile(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+        return toDto(user);
+    }
+
+    @Override
+    public UserResponseDto updateName(String userId, UpdateProfileRequestDto request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+        user.setName(request.getName());
+        User saved = userRepository.save(user);
+        return toDto(saved);
+    }
+
+    @Override
+    public void changePassword(String userId, ChangePasswordRequestDto request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(UserNotFoundException::new);
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw new IncorrectPasswordException();
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 
     private UserResponseDto toDto(User user) {

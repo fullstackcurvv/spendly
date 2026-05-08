@@ -43,13 +43,21 @@ export default function DashboardPage() {
           </div>
           <span className="font-semibold text-lg">Spendly</span>
         </Link>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition"
-        >
-          <LogOut className="w-4 h-4" />
-          Log out
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/profile"
+            className="text-sm px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition"
+          >
+            My Profile
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition"
+          >
+            <LogOut className="w-4 h-4" />
+            Log out
+          </button>
+        </div>
       </header>
 
       {/* Content */}
