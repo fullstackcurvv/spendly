@@ -1,238 +1,237 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with this repository.
 
 ## Project Overview
 
-Spendly is an expense-tracking web app. This repo currently contains only the **frontend** (React + Vite) — the `backend/` directory is empty. The frontend is a landing page with routes to Terms and Privacy Policy pages.
+Spendly is a personal expense-tracking web app. Users register, log in, and view their spending by category. The backend is a Spring Boot REST API; the frontend is a React SPA. Authentication is stateless JWT. The database layer is fully abstracted behind repository interfaces with three adapters (MongoDB, PostgreSQL, SQL Server) selectable via Spring profiles.
 
-## High-Level Architecture Diagram
+## Technology Stack
 
-```
-                        ┌──────────────────────────────────────┐
-                        │           React Frontend             │
-                        │  (TypeScript + Vite + Tailwind v4)   │
-                        └──────────────┬───────────────────────┘
-                                       │  HTTP (Axios)
-                                       │  baseURL: /api
-                                       ▼
-                        ┌──────────────────────────────────────┐
-                        │         Spring Boot Backend          │
-                        │                                      │
-                        │  ┌────────────────────────────────┐  │
-                        │  │     Controller Layer            │  │
-                        │  │   (@RestController)│  │
-                        │  └──────────────┬─────────────────┘  │
-                        │                 │                     │
-                        │  ┌──────────────▼─────────────────┐  │
-                        │  │     Service Layer               │  │
-                        │  │  (@Service)         │  │
-                        │  │  - Business logic               │  │
-                        │  │  - Disk file operations          │  │
-                        │  │  - Calls repository interface    │  │
-                        │  └──────────────┬─────────────────┘  │
-                        │                 │                     │
-                        │  ┌──────────────▼─────────────────┐  │
-                        │  │   Repository Interface          │  │
-                        │  │    (interface)    │  │
-                        │  └──┬───────────┬────────────┬────┘  │
-                        │     │           │            │        │
-                        │  ┌──▼──┐  ┌─────▼────┐  ┌───▼────┐  │
-                        │  │Mongo│  │PostgreSQL │  │SQL Srv │  │
-                        │  │Impl │  │  Impl     │  │ Impl   │  │
-                        │  └──┬──┘  └─────┬────┘  └───┬────┘  │
-                        │     │           │            │        │
-                        └─────┼───────────┼────────────┼───────┘
-                              │           │            │
-                              ▼           ▼            ▼
-                          MongoDB    PostgreSQL    SQL Server
-```
+| Layer | Technology |
+|---|---|
+| Frontend | React 18 + TypeScript + Vite 6 + Tailwind CSS v4 |
+| UI components | shadcn/ui (Radix UI primitives) — do not edit directly |
+| HTTP client | axios — calls `/api/...`, proxied by Vite to `localhost:8080` |
+| Routing | react-router v7 |
+| Backend | Spring Boot 3.3.0, Java 17 |
+| Auth | Spring Security (stateless) + jjwt 0.12.6 (HMAC-SHA256, 24 h) |
+| Validation | Jakarta Bean Validation (`spring-boot-starter-validation`) |
+| MongoDB adapter | Spring Data MongoDB |
+| SQL adapters | Spring Data JPA + `postgresql` / `mssql-jdbc` drivers |
+| Build (frontend) | Vite |
+| Build (backend) | Maven (`pom.xml`) |
 
-## Frontend Folder Structure
+## Architecture
 
 ```
-frontend/
-├── ATTRIBUTIONS.md
-├── default_shadcn_theme.css
-├── file.txt
-├── guidelines/
-│   └── Guidelines.md
-├── index.html
-├── package.json
-├── package-lock.json
-├── pnpm-workspace.yaml
-├── postcss.config.mjs
-├── README.md
-├── vite.config.ts
-├── node_modules/
-└── src/
-    ├── main.tsx
-    ├── app/
-    │   ├── App.tsx
-    │   ├── PrivacyPolicyPage.tsx
-    │   ├── TermsPage.tsx
-    │   └── components/
-    │       ├── figma/
-    │       │   └── ImageWithFallback.tsx
-    │       └── ui/
-    │           ├── accordion.tsx
-    │           ├── alert-dialog.tsx
-    │           ├── alert.tsx
-    │           ├── aspect-ratio.tsx
-    │           ├── avatar.tsx
-    │           ├── badge.tsx
-    │           ├── breadcrumb.tsx
-    │           ├── button.tsx
-    │           ├── calendar.tsx
-    │           ├── card.tsx
-    │           ├── carousel.tsx
-    │           ├── chart.tsx
-    │           ├── checkbox.tsx
-    │           ├── collapsible.tsx
-    │           ├── command.tsx
-    │           ├── context-menu.tsx
-    │           ├── dialog.tsx
-    │           ├── drawer.tsx
-    │           ├── dropdown-menu.tsx
-    │           ├── form.tsx
-    │           ├── hover-card.tsx
-    │           ├── input-otp.tsx
-    │           ├── input.tsx
-    │           ├── label.tsx
-    │           ├── menubar.tsx
-    │           ├── navigation-menu.tsx
-    │           ├── pagination.tsx
-    │           ├── popover.tsx
-    │           ├── progress.tsx
-    │           ├── radio-group.tsx
-    │           ├── resizable.tsx
-    │           ├── scroll-area.tsx
-    │           ├── select.tsx
-    │           ├── separator.tsx
-    │           ├── sheet.tsx
-    │           ├── sidebar.tsx
-    │           ├── skeleton.tsx
-    │           ├── slider.tsx
-    │           ├── sonner.tsx
-    │           ├── switch.tsx
-    │           ├── table.tsx
-    │           ├── tabs.tsx
-    │           ├── textarea.tsx
-    │           ├── toggle-group.tsx
-    │           ├── toggle.tsx
-    │           ├── tooltip.tsx
-    │           ├── use-mobile.ts
-    │           └── utils.ts
-    ├── imports/
-    │   └── spendly-landing-page.jpeg
-    └── styles/
-        ├── fonts.css
-        ├── globals.css
-        ├── index.css
-        ├── tailwind.css
-        └── theme.css
+┌─────────────────────────────────────────────────────┐
+│   React SPA  (localhost:5173 in dev)                │
+│   App.tsx · GuestRoute · PrivateRoute               │
+│   Pages: Landing, Register, Login, Dashboard,       │
+│          Profile, Terms, Privacy                    │
+└────────────────────┬────────────────────────────────┘
+                     │  axios  /api/**
+                     │  Vite dev proxy → localhost:8080
+                     ▼
+┌─────────────────────────────────────────────────────┐
+│   Spring Boot  (context-path /api, port 8080)       │
+│                                                     │
+│   JwtAuthFilter  (OncePerRequestFilter)             │
+│        ↓                                            │
+│   Controller Layer (@RestController)                │
+│   AuthController  · UserController                  │
+│        ↓                                            │
+│   Service Layer (@Service)                          │
+│   UserService / UserServiceImpl                     │
+│        ↓                                            │
+│   Repository Interface                              │
+│   UserRepository · ExpenseRepository               │
+│        ↓  (@Profile selects one adapter)            │
+│   ┌──────────┬──────────────┬────────────┐          │
+│   │ MongoDB  │  PostgreSQL  │ SQL Server │          │
+│   │  Impl   │    Impl      │   Impl     │          │
+│   └──────────┴──────────────┴────────────┘          │
+└─────────────────────────────────────────────────────┘
 ```
 
 ## Architecture Principles
 
-1. **Clean Architecture** — strict layered boundaries enforced by package structure
-2. **Dependency Inversion** — service layer depends on repository interfaces, never on concrete DB implementations
-3. **Single Responsibility** — each class/component has exactly one reason to change
-4. **Configuration over Code** — database selection, file limits, CORS origins — all externalised to configuration
-5. **Adapter Pattern** — each database has its own repository implementation behind a common interface
-6. **Shared Validation** — validation constants (MIME whitelist, size limits) defined once, consumed by both backend and frontend
+1. **Clean layering** — Controller → Service → Repository. Zero business logic in controllers.
+2. **Dependency Inversion** — Service depends on `UserRepository` / `ExpenseRepository` interfaces, never on concrete DB classes.
+3. **Adapter Pattern** — Each DB has its own implementation annotated `@Profile("mongodb|postgresql|sqlserver")`. Exactly one is active at runtime.
+4. **Stateless JWT auth** — No sessions. `JwtAuthFilter` validates the `Authorization: Bearer <token>` header on every request and sets the userId as the Spring Security principal.
+5. **Config-driven DB switching** — Set `spring.profiles.active` to swap the entire data layer with no code changes.
 
---
-## Backend Folder Structure
+## Database Architecture
 
-Backend will be implemented using Spring Boot (Java 17+) following Clean Architecture and layered design.
-The backend is currently empty and must be created under a new backend/ directory.
+### Domain models (DB-agnostic)
+- `User`: `id` (String), `name`, `email`, `passwordHash`, `createdAt`
+- `Expense`: `id` (String), `userId`, `amount` (BigDecimal), `category` (enum), `date` (String YYYY-MM-DD), `description`, `createdAt`
+- `ExpenseCategory` enum: `FOOD TRANSPORT BILLS HEALTH ENTERTAINMENT SHOPPING OTHER`
 
-The system is designed to be:
+### Repository interfaces
+- `UserRepository` — save, findById, findByEmail, findAll, deleteById, existsByEmail
+- `ExpenseRepository` — (defined; expense API endpoints not yet implemented)
 
-Modular (feature-based packages)
-Database-agnostic (via repository interfaces)
-Config-driven (profiles + external config)
+### DB adapters
+Each interface has three implementations under `repository/{mongodb,postgresql,sqlserver}/`. SQL adapters delegate to a Spring Data JPA repository (`*JpaRepository`). MongoDB adapters delegate to a Spring Data MongoDB repository (`*MongoRepository`).
 
-backend/
-└── src/main/java/com/spendly/
-    ├── SpendlyApplication.java
-    ├── config/
-    ├── controller/
-    ├── service/
-    ├── repository/
-    ├── model/
-    ├── dto/
-    └── util/
-
-## Configuration Profiles
-
-Database selection uses Spring's `spring.profiles.active` property. Each
-profile activates the corresponding repository implementation via `@Profile`.
-
+### Profile config files
 ```
-# Switch to MongoDB:
-spring.profiles.active=mongodb
-
-# Switch to PostgreSQL:
-spring.profiles.active=postgresql
-
-# Switch to SQL Server:
-spring.profiles.active=sqlserver
+backend/src/main/resources/
+├── application.yml              default profile: mongodb
+├── application-mongodb.yml
+├── application-postgresql.yml
+└── application-sqlserver.yml
 ```
 
-Only ONE profile is active at a time. The active profile determines:
+### Seed data (`DataSeeder`)
+On startup, if `demo@spendly.com` does not exist, inserts 1 demo user and 8 sample expenses. Safe to restart — skips if already seeded.
 
-- Which `application-{profile}.yml` is loaded
-- Which `@Profile`-annotated repository bean is instantiated
-- Which database driver and connection pool are configured
+- Demo credentials: `demo@spendly.com` / `demo1234`
 
-## Technology Stack
+## Backend Structure
 
-| Layer         | Technology                                                                    |
-|---------------|-------------------------------------------------------------------------------|
-| Backend       | Java 17+ / Spring Boot 3.x, clean architecture                               |
-| ORM           | Hibernate (JPA) for SQL databases                                             |
-| MongoDB       | Spring Data MongoDB                                                           |
-| SQL Server    | Spring Data JPA with `mssql-jdbc` driver                                      |
-| PostgreSQL    | Spring Data JPA with `postgresql` driver                                      |
-| DB selection  | `spring.profiles.active` → `@Profile` beans → correct adapter at runtime     |
-| Frontend      | React 18 + Vite 6 + TypeScript (strict mode, no `any`)                       |
-| Styling       | Tailwind CSS v4 (`@tailwindcss/vite` plugin)                                 |
+```
+backend/src/main/java/com/spendly/
+├── SpendlyApplication.java
+├── config/
+│   ├── AppConfig.java            BCryptPasswordEncoder bean
+│   ├── DataSeeder.java           Seeds demo user + 8 expenses on first run
+│   ├── JpaConfig.java            JPA config (SQL adapters)
+│   ├── MongoConfig.java          MongoDB config
+│   └── SecurityConfig.java       JWT filter chain, CSRF off, stateless sessions
+├── controller/
+│   ├── AuthController.java       POST /auth/register, POST /auth/login  (public)
+│   └── UserController.java       GET /users/me, PATCH /users/me, PATCH /users/me/password
+├── dto/                          Request/response bodies (never expose passwordHash)
+├── exception/
+│   └── GlobalExceptionHandler.java  409 EmailInUse · 401 InvalidCredentials
+│                                    404 UserNotFound · 400 IncorrectPassword
+├── filter/
+│   └── JwtAuthFilter.java        Validates Bearer token; sets userId as principal
+├── model/
+│   ├── User.java · Expense.java · ExpenseCategory.java   (domain models)
+│   ├── jpa/   JpaUser.java · JpaExpense.java             (@Entity for SQL)
+│   └── mongo/ MongoUser.java · MongoExpense.java         (@Document for MongoDB)
+├── repository/
+│   ├── UserRepository.java · ExpenseRepository.java      (interfaces)
+│   ├── mongodb/   MongoUserRepository · MongoExpenseRepository
+│   ├── postgresql/ PostgresUserRepository · PostgresExpenseRepository
+│   └── sqlserver/  SqlServerUserRepository · SqlServerExpenseRepository
+├── service/
+│   ├── UserService.java          Interface
+│   └── impl/UserServiceImpl.java register, login, getProfile, updateName, changePassword
+└── util/
+    └── JwtUtil.java              generateToken, validateToken, extractEmail, extractUserId
+```
+
+### Implemented API endpoints
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/api/auth/register` | public | Create account |
+| POST | `/api/auth/login` | public | Returns JWT + user info |
+| GET | `/api/users/me` | Bearer | Fetch current user profile |
+| PATCH | `/api/users/me` | Bearer | Update display name |
+| PATCH | `/api/users/me/password` | Bearer | Change password |
+
+## Frontend Structure
+
+```
+frontend/src/
+├── main.tsx
+├── app/
+│   ├── App.tsx              BrowserRouter · all routes · LandingPage
+│   │                        GuestRoute (→ /dashboard if logged in)
+│   │                        PrivateRoute (→ /login if no token)
+│   ├── DashboardPage.tsx    /dashboard  (PrivateRoute)
+│   ├── ProfilePage.tsx      /profile    (PrivateRoute) — profile + expense stats
+│   ├── LoginPage.tsx        /login      (GuestRoute)
+│   ├── RegisterPage.tsx     /register   (GuestRoute)
+│   ├── PrivacyPolicyPage.tsx · TermsPage.tsx
+│   └── components/
+│       ├── figma/ImageWithFallback.tsx
+│       └── ui/              shadcn/ui — do not edit, regenerate via shadcn CLI
+├── imports/                 Static assets
+└── styles/
+    ├── index.css            Entry: imports fonts, tailwind, theme
+    ├── theme.css            CSS custom properties
+    ├── tailwind.css
+    ├── fonts.css
+    └── globals.css
+```
+
+### Key CSS variables (theme.css)
+```
+--brand-green: #2ca85a      primary action colour
+--page-bg:     #f8f6f4      warm off-white page background
+--destructive: #d4183d      error states
+--border:      rgba(0,0,0,0.1)
+```
+
+### Auth state (localStorage)
+```
+spendly_token   JWT string
+spendly_user    JSON { id, name, email }
+```
+
+### Axios pattern
+No shared axios instance. Each page imports axios directly and passes the Bearer header manually:
+```ts
+axios.get('/api/users/me', { headers: { Authorization: `Bearer ${localStorage.getItem('spendly_token')}` } })
+```
+On 401: clear localStorage and navigate to `/login`.
+
+## Developer Workflows
+
+### Run frontend (dev)
+```bash
+cd frontend
+npm install       # first time
+npm run dev       # Vite dev server → http://localhost:5173
+```
+Vite proxies `/api/**` to `http://localhost:8080` — backend must be running.
+
+### Run backend
+```bash
+cd backend
+
+# MongoDB (default)
+mvn spring-boot:run
+
+# PostgreSQL
+mvn spring-boot:run -Dspring-boot.run.profiles=postgresql
+
+# SQL Server
+mvn spring-boot:run -Dspring-boot.run.profiles=sqlserver
+```
+
+### Build frontend (production)
+```bash
+cd frontend
+npm run build
+```
+
+### Compile backend only
+```bash
+cd backend
+mvn compile
+```
 
 ## Commands
 
-All commands run from the `frontend/` directory:
+| Command | Directory | Description |
+|---|---|---|
+| `npm run dev` | `frontend/` | Start Vite dev server (port 5173) |
+| `npm run build` | `frontend/` | Production build |
+| `mvn spring-boot:run` | `backend/` | Run backend (mongodb profile) |
+| `mvn compile` | `backend/` | Compile only |
 
-```bash
-cd frontend
-npm install       # install dependencies
-npm run dev       # start dev server (Vite, localhost:5173)
-npm run build     # production build
-```
+## Notes
 
-## Architecture
-
-### Entry point
-`frontend/src/main.tsx` → mounts `App.tsx` → `BrowserRouter` with routes `/`, `/terms`, `/policy`.
-
-### Source layout
-- `src/app/App.tsx` — all route definitions and the `LandingPage` component (hero, features, CTA, footer, YouTube modal)
-- `src/app/PrivacyPolicyPage.tsx` / `src/app/TermsPage.tsx` — standalone legal pages
-- `src/app/components/ui/` — shadcn/ui component library (do not edit these; regenerate via shadcn CLI if needed)
-- `src/app/components/figma/ImageWithFallback.tsx` — Figma Make helper for image imports
-- `src/imports/` — static assets (images) exported from Figma
-- `src/styles/` — CSS pipeline: `index.css` imports `fonts.css`, `tailwind.css`, `theme.css`
-
-### Styling
-Tailwind CSS v4 via the `@tailwindcss/vite` plugin (no `tailwind.config.js` file). Design tokens are CSS variables defined in `src/styles/theme.css` and exposed to Tailwind via `@theme inline`. The brand green is `#2ca85a`; the page background is `#f8f6f4`.
-
-`@` is aliased to `src/` in Vite config. `figma:asset/<filename>` imports resolve to `src/assets/`.
-
-### Key dependencies
-- `react-router` v7 — client-side routing
-- `lucide-react` — icons
-- `motion` — animations
-- `recharts` — charts (available but not yet used on the landing page)
-- `react-hook-form` — form handling (available, not yet used)
-- shadcn/ui (Radix primitives + `class-variance-authority` + `tailwind-merge`)
+- **Vite alias:** `@` resolves to `frontend/src/`. `figma:asset/<file>` resolves to `frontend/src/assets/`.
+- **No Tailwind config file** — Tailwind v4 uses the `@tailwindcss/vite` plugin. Design tokens live in `src/styles/theme.css` under `@theme inline`.
+- **ExpenseRepository is defined** but no expense controller or service exists yet — that is the next feature step.
+- **ProfilePage expense data** is currently mocked client-side; will be replaced with real API calls when expense endpoints are built.
+- **Git root** is one level above this directory (`C:\Users\asus\CLAUDE COWORK\spendly`). All git commands must be run from there.

@@ -10,7 +10,7 @@ import ProfilePage from './ProfilePage';
 
 function GuestRoute({ children }: { children: React.ReactNode }) {
   return localStorage.getItem('spendly_token')
-    ? <Navigate to="/dashboard" replace />
+    ? <Navigate to="/profile" replace />
     : <>{children}</>;
 }
 

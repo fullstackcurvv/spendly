@@ -10,24 +10,25 @@ interface ProfileData {
   createdAt: string;
 }
 
-interface Transaction {
+interface ExpenseTransaction {
+  id: string;
   date: string;
   description: string;
   category: string;
   amount: number;
 }
 
-// Mock expense data — replace with real API calls when expense endpoints are built
-const MOCK_TRANSACTIONS: Transaction[] = [
-  { date: '12 Apr 2025', description: 'Groceries', category: 'Food', amount: 850.0 },
-  { date: '11 Apr 2025', description: 'Metro card recharge', category: 'Transport', amount: 500.0 },
-  { date: '10 Apr 2025', description: 'Electricity bill', category: 'Bills', amount: 2200.0 },
-  { date: '09 Apr 2025', description: 'Doctor visit', category: 'Health', amount: 800.0 },
-  { date: '08 Apr 2025', description: 'Netflix subscription', category: 'Entertainment', amount: 649.0 },
-  { date: '07 Apr 2025', description: 'New shoes', category: 'Shopping', amount: 3200.0 },
-  { date: '05 Apr 2025', description: 'Dinner with friends', category: 'Food', amount: 1450.0 },
-  { date: '01 Apr 2025', description: 'Miscellaneous', category: 'Other', amount: 2801.75 },
-];
+interface ExpenseSummary {
+  totalSpent: number;
+  transactionCount: number;
+  topCategory: string;
+}
+
+interface ExpenseCategoryBreakdown {
+  category: string;
+  total: number;
+  percentage: number;
+}
 
 const BADGE: Record<string, string> = {
   Food: 'bg-green-100 text-green-700',
@@ -53,6 +54,14 @@ function fmt(n: number) {
   return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function fmtDate(raw: string) {
+  return new Date(raw).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function toDisplayName(category: string) {
+  return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+}
+
 function initials(name: string) {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 }
@@ -60,13 +69,27 @@ function initials(name: string) {
 export default function ProfilePage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [expenses, setExpenses] = useState<ExpenseTransaction[]>([]);
+  const [summary, setSummary] = useState<ExpenseSummary>({ totalSpent: 0, transactionCount: 0, topCategory: '—' });
+  const [categories, setCategories] = useState<ExpenseCategoryBreakdown[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('spendly_token');
     if (!token) { navigate('/login'); return; }
-    axios
-      .get<ProfileData>('/api/users/me', { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => setProfile(res.data))
+    const headers = { Authorization: `Bearer ${token}` };
+
+    Promise.all([
+      axios.get<ProfileData>('/api/users/me', { headers }),
+      axios.get<ExpenseTransaction[]>('/api/expenses', { headers }),
+      axios.get<ExpenseSummary>('/api/expenses/summary', { headers }),
+      axios.get<ExpenseCategoryBreakdown[]>('/api/expenses/categories', { headers }),
+    ])
+      .then(([profileRes, expensesRes, summaryRes, categoriesRes]) => {
+        setProfile(profileRes.data);
+        setExpenses(expensesRes.data);
+        setSummary(summaryRes.data);
+        setCategories(categoriesRes.data);
+      })
       .catch(err => {
         if (axios.isAxiosError(err) && err.response?.status === 401) {
           localStorage.removeItem('spendly_token');
@@ -82,19 +105,7 @@ export default function ProfilePage() {
     navigate('/');
   }
 
-  const totalSpent = MOCK_TRANSACTIONS.reduce((s, t) => s + t.amount, 0);
-
-  const categoryTotals = Object.entries(
-    MOCK_TRANSACTIONS.reduce<Record<string, number>>((acc, t) => {
-      acc[t.category] = (acc[t.category] ?? 0) + t.amount;
-      return acc;
-    }, {})
-  )
-    .sort(([, a], [, b]) => b - a)
-    .map(([category, total]) => ({ category, total }));
-
-  const maxTotal = categoryTotals[0]?.total ?? 1;
-  const topCategory = categoryTotals[0]?.category ?? '—';
+  const maxCategoryTotal = categories[0]?.total ?? 1;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--page-bg)' }}>
@@ -161,9 +172,9 @@ export default function ProfilePage() {
         <div className="grid grid-cols-3 gap-4">
           {(
             [
-              { label: 'TOTAL SPENT', value: fmt(totalSpent) },
-              { label: 'TRANSACTIONS', value: String(MOCK_TRANSACTIONS.length) },
-              { label: 'TOP CATEGORY', value: topCategory },
+              { label: 'TOTAL SPENT', value: fmt(summary.totalSpent) },
+              { label: 'TRANSACTIONS', value: String(summary.transactionCount) },
+              { label: 'TOP CATEGORY', value: toDisplayName(summary.topCategory) },
             ] as const
           ).map(({ label, value }) => (
             <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-5">
@@ -194,22 +205,25 @@ export default function ProfilePage() {
                 </tr>
               </thead>
               <tbody>
-                {MOCK_TRANSACTIONS.map((tx, i) => (
-                  <tr key={i} className="border-b border-gray-50 last:border-0">
-                    <td className="py-3 text-gray-500 whitespace-nowrap pr-6">{tx.date}</td>
-                    <td className="py-3 text-gray-700 pr-6">{tx.description}</td>
-                    <td className="py-3 pr-6">
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${BADGE[tx.category] ?? 'bg-gray-100 text-gray-500'}`}
-                      >
-                        {tx.category}
-                      </span>
-                    </td>
-                    <td className="py-3 text-right text-gray-700 font-medium tabular-nums">
-                      {fmt(tx.amount)}
-                    </td>
-                  </tr>
-                ))}
+                {expenses.map((tx) => {
+                  const displayCategory = toDisplayName(tx.category);
+                  return (
+                    <tr key={tx.id} className="border-b border-gray-50 last:border-0">
+                      <td className="py-3 text-gray-500 whitespace-nowrap pr-6">{fmtDate(tx.date)}</td>
+                      <td className="py-3 text-gray-700 pr-6">{tx.description}</td>
+                      <td className="py-3 pr-6">
+                        <span
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${BADGE[displayCategory] ?? 'bg-gray-100 text-gray-500'}`}
+                        >
+                          {displayCategory}
+                        </span>
+                      </td>
+                      <td className="py-3 text-right text-gray-700 font-medium tabular-nums">
+                        {fmt(tx.amount)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -218,23 +232,26 @@ export default function ProfilePage() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 className="text-base font-bold text-gray-900 mb-5">By Category</h2>
             <div className="space-y-4">
-              {categoryTotals.map(({ category, total }) => (
-                <div key={category}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm text-gray-700">{category}</span>
-                    <span className="text-sm text-gray-600 tabular-nums">{fmt(total)}</span>
+              {categories.map(({ category, total }) => {
+                const displayCategory = toDisplayName(category);
+                return (
+                  <div key={category}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm text-gray-700">{displayCategory}</span>
+                      <span className="text-sm text-gray-600 tabular-nums">{fmt(total)}</span>
+                    </div>
+                    <div className="h-[5px] bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${(total / maxCategoryTotal) * 100}%`,
+                          backgroundColor: BAR_COLOR[displayCategory] ?? '#9ca3af',
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-[5px] bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${(total / maxTotal) * 100}%`,
-                        backgroundColor: BAR_COLOR[category] ?? '#9ca3af',
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
