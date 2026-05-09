@@ -18,18 +18,6 @@ interface ExpenseTransaction {
   amount: number;
 }
 
-interface ExpenseSummary {
-  totalSpent: number;
-  transactionCount: number;
-  topCategory: string;
-}
-
-interface ExpenseCategoryBreakdown {
-  category: string;
-  total: number;
-  percentage: number;
-}
-
 const BADGE: Record<string, string> = {
   Food: 'bg-green-100 text-green-700',
   Transport: 'bg-slate-700 text-white',
@@ -41,6 +29,7 @@ const BADGE: Record<string, string> = {
 };
 
 const BAR_COLOR: Record<string, string> = {
+  /* category palette */
   Shopping: '#d97706',
   Other: '#9ca3af',
   Food: '#16a34a',
@@ -70,26 +59,15 @@ export default function ProfilePage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [expenses, setExpenses] = useState<ExpenseTransaction[]>([]);
-  const [summary, setSummary] = useState<ExpenseSummary>({ totalSpent: 0, transactionCount: 0, topCategory: '—' });
-  const [categories, setCategories] = useState<ExpenseCategoryBreakdown[]>([]);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('spendly_token');
     if (!token) { navigate('/login'); return; }
-    const headers = { Authorization: `Bearer ${token}` };
-
-    Promise.all([
-      axios.get<ProfileData>('/api/users/me', { headers }),
-      axios.get<ExpenseTransaction[]>('/api/expenses', { headers }),
-      axios.get<ExpenseSummary>('/api/expenses/summary', { headers }),
-      axios.get<ExpenseCategoryBreakdown[]>('/api/expenses/categories', { headers }),
-    ])
-      .then(([profileRes, expensesRes, summaryRes, categoriesRes]) => {
-        setProfile(profileRes.data);
-        setExpenses(expensesRes.data);
-        setSummary(summaryRes.data);
-        setCategories(categoriesRes.data);
-      })
+    axios
+      .get<ProfileData>('/api/users/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setProfile(res.data))
       .catch(err => {
         if (axios.isAxiosError(err) && err.response?.status === 401) {
           localStorage.removeItem('spendly_token');
@@ -99,13 +77,47 @@ export default function ProfilePage() {
       });
   }, [navigate]);
 
+  useEffect(() => {
+    const token = localStorage.getItem('spendly_token');
+    if (!token) return;
+    const params = new URLSearchParams();
+    if (startDate) params.set('startDate', startDate);
+    if (endDate) params.set('endDate', endDate);
+    const query = params.toString() ? `?${params}` : '';
+    axios
+      .get<ExpenseTransaction[]>(`/api/expenses${query}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(res => setExpenses(res.data))
+      .catch(err => {
+        if (axios.isAxiosError(err) && err.response?.status === 401) {
+          localStorage.removeItem('spendly_token');
+          localStorage.removeItem('spendly_user');
+          navigate('/login');
+        }
+      });
+  }, [startDate, endDate, navigate]);
+
   function handleSignOut() {
     localStorage.removeItem('spendly_token');
     localStorage.removeItem('spendly_user');
     navigate('/');
   }
 
-  const maxCategoryTotal = categories[0]?.total ?? 1;
+  const totalSpent = expenses.reduce((s, e) => s + Number(e.amount), 0);
+
+  const categoryTotals = Object.entries(
+    expenses.reduce<Record<string, number>>((acc, e) => {
+      const name = toDisplayName(e.category);
+      acc[name] = (acc[name] ?? 0) + Number(e.amount);
+      return acc;
+    }, {})
+  )
+    .sort(([, a], [, b]) => b - a)
+    .map(([category, total]) => ({ category, total }));
+
+  const topCategory = categoryTotals[0]?.category ?? '—';
+  const maxCategoryTotal = categoryTotals[0]?.total ?? 1;
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--page-bg)' }}>
@@ -172,9 +184,9 @@ export default function ProfilePage() {
         <div className="grid grid-cols-3 gap-4">
           {(
             [
-              { label: 'TOTAL SPENT', value: fmt(summary.totalSpent) },
-              { label: 'TRANSACTIONS', value: String(summary.transactionCount) },
-              { label: 'TOP CATEGORY', value: toDisplayName(summary.topCategory) },
+              { label: 'TOTAL SPENT', value: fmt(totalSpent) },
+              { label: 'TRANSACTIONS', value: String(expenses.length) },
+              { label: 'TOP CATEGORY', value: topCategory },
             ] as const
           ).map(({ label, value }) => (
             <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-5">
@@ -191,6 +203,32 @@ export default function ProfilePage() {
           {/* Recent Transactions */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 className="text-base font-bold text-gray-900 mb-4">Recent Transactions</h2>
+
+            {/* Date filter */}
+            <div className="flex items-center gap-3 mb-4">
+              <input
+                type="date"
+                value={startDate}
+                onChange={e => setStartDate(e.target.value)}
+                className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-gray-400"
+              />
+              <span className="text-gray-400 text-sm">to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={e => setEndDate(e.target.value)}
+                className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-gray-400"
+              />
+              {(startDate || endDate) && (
+                <button
+                  onClick={() => { setStartDate(''); setEndDate(''); }}
+                  className="text-xs text-gray-400 hover:text-gray-700 transition"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
@@ -205,7 +243,13 @@ export default function ProfilePage() {
                 </tr>
               </thead>
               <tbody>
-                {expenses.map((tx) => {
+                {expenses.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-6 text-center text-sm text-gray-400">
+                      No transactions for the selected period.
+                    </td>
+                  </tr>
+                ) : expenses.map((tx) => {
                   const displayCategory = toDisplayName(tx.category);
                   return (
                     <tr key={tx.id} className="border-b border-gray-50 last:border-0">
@@ -232,26 +276,23 @@ export default function ProfilePage() {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 className="text-base font-bold text-gray-900 mb-5">By Category</h2>
             <div className="space-y-4">
-              {categories.map(({ category, total }) => {
-                const displayCategory = toDisplayName(category);
-                return (
-                  <div key={category}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm text-gray-700">{displayCategory}</span>
-                      <span className="text-sm text-gray-600 tabular-nums">{fmt(total)}</span>
-                    </div>
-                    <div className="h-[5px] bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${(total / maxCategoryTotal) * 100}%`,
-                          backgroundColor: BAR_COLOR[displayCategory] ?? '#9ca3af',
-                        }}
-                      />
-                    </div>
+              {categoryTotals.map(({ category, total }) => (
+                <div key={category}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-sm text-gray-700">{category}</span>
+                    <span className="text-sm text-gray-600 tabular-nums">{fmt(total)}</span>
                   </div>
-                );
-              })}
+                  <div className="h-[5px] bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${(total / maxCategoryTotal) * 100}%`,
+                        backgroundColor: BAR_COLOR[category] ?? '#9ca3af',
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

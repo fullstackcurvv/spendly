@@ -11,4 +11,5 @@ public interface SqlServerExpenseJpaRepository extends JpaRepository<JpaExpense,
     List<JpaExpense> findByUserId(Long userId);
     List<JpaExpense> findByUserIdAndCategory(Long userId, ExpenseCategory category);
     long countByUserId(Long userId);
+    List<JpaExpense> findByUserIdAndDateGreaterThanEqualAndDateLessThanEqual(Long userId, String startDate, String endDate);
 }

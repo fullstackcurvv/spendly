@@ -57,6 +57,12 @@ public class MongoExpenseRepository implements ExpenseRepository {
         return mongoRepository.countByUserId(userId);
     }
 
+    @Override
+    public List<Expense> findByUserIdAndDateBetween(String userId, String startDate, String endDate) {
+        return mongoRepository.findByUserIdAndDateGreaterThanEqualAndDateLessThanEqual(userId, startDate, endDate)
+                .stream().map(this::toModel).collect(Collectors.toList());
+    }
+
     private MongoExpense toEntity(Expense m) {
         MongoExpense e = new MongoExpense();
         e.setId(m.getId());

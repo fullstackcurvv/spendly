@@ -10,4 +10,5 @@ public interface MongoExpenseMongoRepository extends MongoRepository<MongoExpens
     List<MongoExpense> findByUserId(String userId);
     List<MongoExpense> findByUserIdAndCategory(String userId, String category);
     long countByUserId(String userId);
+    List<MongoExpense> findByUserIdAndDateGreaterThanEqualAndDateLessThanEqual(String userId, String startDate, String endDate);
 }

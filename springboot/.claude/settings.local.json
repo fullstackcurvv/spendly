@@ -18,7 +18,9 @@
       "Bash(where mongo *)",
       "Bash(where mongosh *)",
       "Bash(mongosh.cmd *)",
-      "Bash(python *)"
+      "Bash(python *)",
+      "Bash(Get-ChildItem *)",
+      "Bash(Copy-Item *)"
     ]
   }
 }

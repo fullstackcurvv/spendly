@@ -25,8 +25,17 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     // ── [SUBAGENT-1] transaction history ─────────────────────────────────────
     @Override
-    public List<ExpenseResponseDto> getExpensesForUser(String userId) {
-        List<Expense> expenses = expenseRepository.findByUserId(userId);
+    public List<ExpenseResponseDto> getExpensesForUser(String userId, String startDate, String endDate) {
+        List<Expense> expenses;
+        if (startDate != null && endDate != null) {
+            expenses = expenseRepository.findByUserIdAndDateBetween(userId, startDate, endDate);
+        } else if (startDate != null) {
+            expenses = expenseRepository.findByUserIdAndDateBetween(userId, startDate, "9999-12-31");
+        } else if (endDate != null) {
+            expenses = expenseRepository.findByUserIdAndDateBetween(userId, "0000-01-01", endDate);
+        } else {
+            expenses = expenseRepository.findByUserId(userId);
+        }
         return expenses.stream()
                 .sorted(Comparator.comparing(Expense::getDate).reversed())
                 .map(e -> new ExpenseResponseDto(

@@ -57,6 +57,12 @@ public class PostgresExpenseRepository implements ExpenseRepository {
         return jpaRepository.countByUserId(Long.parseLong(userId));
     }
 
+    @Override
+    public List<Expense> findByUserIdAndDateBetween(String userId, String startDate, String endDate) {
+        return jpaRepository.findByUserIdAndDateGreaterThanEqualAndDateLessThanEqual(Long.parseLong(userId), startDate, endDate)
+                .stream().map(this::toModel).collect(Collectors.toList());
+    }
+
     private JpaExpense toEntity(Expense m) {
         JpaExpense e = new JpaExpense();
         if (m.getId() != null && !m.getId().isEmpty()) {

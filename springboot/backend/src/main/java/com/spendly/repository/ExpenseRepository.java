@@ -20,4 +20,6 @@ public interface ExpenseRepository {
     void deleteById(String id);
 
     long countByUserId(String userId);
+
+    List<Expense> findByUserIdAndDateBetween(String userId, String startDate, String endDate);
 }

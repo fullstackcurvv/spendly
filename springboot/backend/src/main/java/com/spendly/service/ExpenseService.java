@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ExpenseService {
     // [SUBAGENT-1] transaction history
-    List<ExpenseResponseDto> getExpensesForUser(String userId);
+    List<ExpenseResponseDto> getExpensesForUser(String userId, String startDate, String endDate);
 
     // [SUBAGENT-2] summary stats
     ExpenseSummaryDto getSummaryForUser(String userId);
